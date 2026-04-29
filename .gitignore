@@ -1,0 +1,10 @@
+.gradle/
+gradle/
+build/
+.idea/
+*.iml
+*.bat
+gradlew
+gradlew.bat
+gradle/wrapper/gradle-wrapper.jar
+remarks.txt
