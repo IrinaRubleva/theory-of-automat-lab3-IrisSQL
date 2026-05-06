@@ -1,9 +1,8 @@
 package model.ast;
 
-import parser.*;
 import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.tree.ParseTree;
-
+import org.antlr.v4.runtime.tree.*;
+import parser.*;
 
 public class Interpreter {
 
@@ -20,5 +19,9 @@ public class Interpreter {
         ParseTree tree = parser.prog();
 
         return visitor.visit(tree);
+    }
+
+    public ASTVisitor getVisitor() {
+        return visitor;
     }
 }

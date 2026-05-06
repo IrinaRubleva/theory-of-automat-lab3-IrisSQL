@@ -4,12 +4,21 @@ prog: request EOF;
 
 //поддерживаемые команды
 request
-    : createDataBase | dropDataBase | createTable | dropTable | insert | select;
+    : createDataBase
+    | dropDataBase
+    | createTable
+    | dropTable
+    | insert
+    | select
+    | delete
+    ;
 
+delete: DELETE FROM name whereClause? SEMICOLON;
 createDataBase: CREATE DATABASE name SEMICOLON;
 dropDataBase: DROP DATABASE name SEMICOLON;
 
-createTable : CREATE TABLE name LPAREN columnDef (COMMA columnDef)* RPAREN SEMICOLON;
+createTable : CREATE TABLE name LPAREN columnDef (COMMA columnDef)* RPAREN (WITH INDEXING BY indexType)? SEMICOLON;
+indexType : ORDER | HASH | TREE;
 dropTable : DROP TABLE name SEMICOLON;
 
 columnDef : name dataType columnModifier* ;
@@ -18,26 +27,50 @@ columnModifier
 
 insert: INSERT INTO name VALUE LPAREN expr (COMMA expr)* RPAREN SEMICOLON;
 
-select: SELECT projection FROM tableRef whereClause? orderClause? SEMICOLON;
+select
+    : SELECT projection
+      FROM tableRef
+      joinClause*
+      whereClause?
+      orderClause?
+      skipClause?
+      limitClause?
+      groupByClause?
+      SEMICOLON
+    ;
+
+skipClause : SKIP_ INTEGER_NUM;
+limitClause : LIMIT INTEGER_NUM;
+
 projection: STAR | selectItem (COMMA selectItem)*;
 selectItem: expr (AS name)?;
 
+alter
+ : ALTER TABLE name ADD COLUMN columnDef SEMICOLON
+ | ALTER TABLE name DROP COLUMN name SEMICOLON
+ | ALTER TABLE name EDIT COLUMN columnDef SEMICOLON
+ ;
 tableRef: name | LPAREN select RPAREN;
+joinClause: (LEFT | RIGHT | FULL)? JOIN tableRef ON expr;
+columnList: name (COMMA name)*;
 whereClause: WHERE expr;
 orderClause: ORDER BY orderItem (COMMA orderItem)*;
 orderItem: name (ASC | DESC)?;
+groupByClause: GROUP BY columnList;
 
 expr
     : expr op=('*' | '/' | '%') expr
     | expr op=('+' | '-') expr
-    | expr op=(EQ | NEQ) expr
+    | expr op=(EQ | NEQ | G | GE | L | LE) expr
     | expr op=AND expr
     | expr op=OR expr
     | NOT expr
     | LPAREN expr RPAREN
     | literal
-    | name ;
+    | name
+    | funcCall ;
 
+funcCall: name LPAREN (expr (COMMA expr)*)? RPAREN;
 literal : INTEGER_NUM | REAL_NUM | STRING | TRUE | FALSE | NULL ;
 dataType : TEXT | INTEGER_TYPE | REAL_TYPE | LOGIC ;
 
@@ -52,6 +85,7 @@ VALUE : [vV][aA][lL][uU][eE];
 SELECT : [sS][eE][lL][eE][cC][tT];
 FROM : [fF][rR][oO][mM];
 WHERE : [wW][hH][eE][rR][eE];
+GROUP: [Gr][Rr][Oo][Uu][Pp];
 ORDER : [oO][rR][dD][eE][rR];
 BY : [bB][yY];
 ASC : [aA][sS][cC];
@@ -70,10 +104,31 @@ TEXT : [tT][eE][xX][tT];
 LOGIC : [lL][oO][gG][iI][cC];
 INTEGER_TYPE : [iI][nN][tT][eE][gG][eE][rR];
 REAL_TYPE : [rR][eE][aA][lL];
+LEFT: [Ll][Ee][Ff][Tt];
+RIGHT: [Rr][Ii][Gg][Hh][Tt];
+FULL: [Ff][Uu][Ll][Ll];
+JOIN: [Jj][Oo][Ii][Nn];
+ON: [Oo][Nn];
+ALTER: [Aa][Ll][Tt][Ee][Rr];
+COLUMN: [Cc][Oo][Ll][Uu][Mm][Nn];
+ADD: [Aa][Dd][Dd];
+EDIT: [Ee][Dd][Ii][Tt];
+DELETE: [Dd][Ee][Ll][Ee][Tt][Ee];
+SKIP_: [Ss][Kk][Ii][Pp];
+LIMIT: [Ll][Ii][Mm][Ii][Tt];
+WITH : [Ww][Ii][Tt][Hh];
+INDEXING : [Ii][Nn][Dd][Ee][Xx][Ii][Nn][Gg];
+HASH : [Hh][Aa][Ss][Hh];
+TREE : [Tt][Rr][Ee][Ee];
+
 
 
 EQ : '=';
 NEQ : '<>';
+G : '>';
+GE: '>=';
+L: '<';
+LE: '<=';
 
 
 LPAREN : '(';

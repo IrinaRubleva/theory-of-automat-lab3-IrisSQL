@@ -2,28 +2,32 @@ package model.ast;
 
 import java.util.*;
 
-
-
 public class Database {
 
+    public final String name;
     private final Map<String, Table> tables = new HashMap<>();
 
-    public void createTable(String name, List<String> columns) {
-        if (tables.containsKey(name)) {
-            throw new RuntimeException("Table already exists: " + name);
+    public Database(String name) {
+        this.name = name;
+    }
+
+    public void createTable(Table table) {
+        if (tables.containsKey(table.name)) {
+            throw new RuntimeException("Table exists: " + table.name);
         }
-        tables.put(name, new Table(name, columns));
+        tables.put(table.name, table);
+    }
+
+    public void dropTable(String name) {
+        tables.remove(name);
     }
 
     public Table getTable(String name) {
         Table t = tables.get(name);
-        if (t == null) {
-            throw new RuntimeException("Table not found: " + name);
-        }
+        if (t == null) throw new RuntimeException("Table not found: " + name);
         return t;
     }
 
-    public List<Map<String, Object>> selectAll(String tableName) {
-        return new ArrayList<>(getTable(tableName).rows);
-    }
+    public String getName() { return name; }
+
 }

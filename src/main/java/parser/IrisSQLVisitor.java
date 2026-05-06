@@ -23,6 +23,12 @@ public interface IrisSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitRequest(IrisSQLParser.RequestContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link IrisSQLParser#delete}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDelete(IrisSQLParser.DeleteContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link IrisSQLParser#createDataBase}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -40,6 +46,12 @@ public interface IrisSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitCreateTable(IrisSQLParser.CreateTableContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link IrisSQLParser#indexType}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIndexType(IrisSQLParser.IndexTypeContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link IrisSQLParser#dropTable}.
 	 * @param ctx the parse tree
@@ -71,6 +83,18 @@ public interface IrisSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitSelect(IrisSQLParser.SelectContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link IrisSQLParser#skipClause}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSkipClause(IrisSQLParser.SkipClauseContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link IrisSQLParser#limitClause}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLimitClause(IrisSQLParser.LimitClauseContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link IrisSQLParser#projection}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -83,11 +107,29 @@ public interface IrisSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitSelectItem(IrisSQLParser.SelectItemContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link IrisSQLParser#alter}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAlter(IrisSQLParser.AlterContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link IrisSQLParser#tableRef}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitTableRef(IrisSQLParser.TableRefContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link IrisSQLParser#joinClause}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitJoinClause(IrisSQLParser.JoinClauseContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link IrisSQLParser#columnList}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitColumnList(IrisSQLParser.ColumnListContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link IrisSQLParser#whereClause}.
 	 * @param ctx the parse tree
@@ -107,11 +149,23 @@ public interface IrisSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitOrderItem(IrisSQLParser.OrderItemContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link IrisSQLParser#groupByClause}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitGroupByClause(IrisSQLParser.GroupByClauseContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link IrisSQLParser#expr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitExpr(IrisSQLParser.ExprContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link IrisSQLParser#funcCall}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFuncCall(IrisSQLParser.FuncCallContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link IrisSQLParser#literal}.
 	 * @param ctx the parse tree
