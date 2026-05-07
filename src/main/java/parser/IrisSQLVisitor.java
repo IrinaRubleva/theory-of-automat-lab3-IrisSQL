@@ -1,4 +1,4 @@
-// Generated from C:/Users/iraru/Desktop/TheoryOfAutomat/lab3/src/main/antlr/IrisSQL.g4 by ANTLR 4.13.2
+// Generated from IrisSQL.g4 by ANTLR 4.13.2
 package parser;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -77,11 +77,17 @@ public interface IrisSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitInsert(IrisSQLParser.InsertContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link IrisSQLParser#select}.
+	 * Visit a parse tree produced by {@link IrisSQLParser#selectStatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitSelect(IrisSQLParser.SelectContext ctx);
+	T visitSelectStatement(IrisSQLParser.SelectStatementContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link IrisSQLParser#selectCore}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSelectCore(IrisSQLParser.SelectCoreContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link IrisSQLParser#skipClause}.
 	 * @param ctx the parse tree
@@ -112,6 +118,12 @@ public interface IrisSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitAlter(IrisSQLParser.AlterContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link IrisSQLParser#constraintDef}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitConstraintDef(IrisSQLParser.ConstraintDefContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link IrisSQLParser#tableRef}.
 	 * @param ctx the parse tree

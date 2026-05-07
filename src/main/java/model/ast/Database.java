@@ -19,6 +19,10 @@ public class Database {
     }
 
     public void dropTable(String name) {
+
+        if (!tables.containsKey(name)) {
+            throw new RuntimeException("Table not found: " + name);
+        }
         tables.remove(name);
     }
 

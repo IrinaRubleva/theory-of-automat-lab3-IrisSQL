@@ -71,6 +71,24 @@ public class ASTVisitor extends IrisSQLBaseVisitor<Object> {
         }
 
         Table table = new Table(name, columns, indexType);
+        for (Column col : columns) {
+            if (col.primaryKey) {
+                Constraint pk = new Constraint(
+                        "pk_" + name + "_" + col.name,
+                        ConstraintType.PRIMARY_KEY,
+                        List.of(col.name)
+                );
+                table.addConstraint(pk);
+            }
+            if (col.unique) {
+                Constraint uq = new Constraint(
+                        "uq_" + name + "_" + col.name,
+                        ConstraintType.UNIQUE,
+                        List.of(col.name)
+                );
+                table.addConstraint(uq);
+            }
+        }
 
         currentDb.createTable(table);
 
@@ -96,11 +114,15 @@ public class ASTVisitor extends IrisSQLBaseVisitor<Object> {
         return "INSERT OK";
     }
 
+
     @Override
-    public Object visitSelect(IrisSQLParser.SelectContext ctx) {
-        return  select.visitSelect(ctx);
+    public Object visitSelectStatement(IrisSQLParser.SelectStatementContext ctx) {
+        return select.visitSelectStatement(ctx);
     }
 
+    public Object visitSelectCore(IrisSQLParser.SelectCoreContext ctx) {
+        return select.visitSelectCore(ctx);
+    }
 
 
 
@@ -135,33 +157,69 @@ public class ASTVisitor extends IrisSQLBaseVisitor<Object> {
     }
 
     @Override
+    public Object visitDropTable(IrisSQLParser.DropTableContext ctx) {
+        String name = ctx.name().getText();
+
+        if (currentDb == null) {
+            throw new RuntimeException("No database selected");
+        }
+
+        currentDb.dropTable(name);
+
+        return "TABLE DROPPED: " + name;
+    }
+
+    @Override
     public Object visitAlter(IrisSQLParser.AlterContext ctx) {
 
         Table table = currentDb.getTable(ctx.name(0).getText());
 
-        if (ctx.ADD() != null) {
 
+        if (ctx.ADD() != null && ctx.CONSTRAINT() != null) {
+            if (ctx.constraintDef() == null) {
+                throw new RuntimeException("Missing constraint definition");
+            }
+            String constraintName = ctx.name(1).getText();
+            ConstraintType type;
+            if (ctx.constraintDef().PRIMARY() != null) {
+                type = ConstraintType.PRIMARY_KEY;
+            } else {
+                type = ConstraintType.UNIQUE;
+            }
+            List<String> cols = new ArrayList<>();
+            for (var n : ctx.constraintDef().columnList().name()) {
+                cols.add(n.getText());
+            }
+            Constraint c = new Constraint(constraintName, type, cols);
+            table.addConstraint(c);
+            return "CONSTRAINT ADDED";
+        }
+
+        if (ctx.DROP() != null && ctx.CONSTRAINT() != null) {
+            String constraintName = ctx.name(1).getText();
+            table.dropConstraint(constraintName);
+            return "CONSTRAINT DROPPED";
+        }
+
+        if (ctx.ADD() != null && ctx.COLUMN() != null) {
             Column col = buildColumn(ctx.columnDef());
             table.addColumn(col);
-
             return "COLUMN ADDED";
         }
 
-        if (ctx.DROP() != null) {
 
+        if (ctx.DROP() != null && ctx.COLUMN() != null) {
             table.dropColumn(ctx.name(1).getText());
             return "COLUMN DROPPED";
         }
 
-        if (ctx.EDIT() != null) {
-
+        if (ctx.EDIT() != null && ctx.COLUMN() != null) {
             Column col = buildColumn(ctx.columnDef());
             table.editColumn(col);
-
             return "COLUMN EDITED";
         }
 
-        return null;
+        throw new RuntimeException("Unknown ALTER operation");
     }
 
     @Override
@@ -219,13 +277,27 @@ public class ASTVisitor extends IrisSQLBaseVisitor<Object> {
     }
 
     public List<Map<String, Object>> getTableData(IrisSQLParser.TableRefContext ctx) {
-        String tableName = ctx.getText();
-        Table table = currentDb.getTable(tableName);
-        if (table == null) {
-            throw new RuntimeException("Table not found: " + tableName);
+        if (ctx.name() != null) {
+            String tableName = ctx.name().getText();
+            Table table = currentDb.getTable(tableName);
+            if (table == null) {
+                throw new RuntimeException("Table not found: " + tableName);
+            }
+            return table.rows;
         }
-        return table.rows;
+
+        // Подзапрос в скобках
+        if (ctx.selectCore() != null) {
+            Object result = visitSelectCore(ctx.selectCore());
+            if (result instanceof List) {
+                return (List<Map<String, Object>>) result;
+            }
+            throw new RuntimeException("Subquery did not return a table");
+        }
+
+        throw new RuntimeException("Invalid table reference");
     }
+
 
     public Map<String, Object> mergeRows(Map<String, Object> left, Map<String, Object> right, String rightPrefix) {
         Map<String, Object> result = new LinkedHashMap<>();

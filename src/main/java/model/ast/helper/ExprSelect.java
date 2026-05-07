@@ -19,9 +19,33 @@ public class ExprSelect {
         this.join = new ExprJoin(eval, visitor);
     }
 
-    public Object visitSelect(IrisSQLParser.SelectContext ctx) {
+//    public Object visitSelect(IrisSQLParser.SelectContext ctx) {
+//        List<Map<String, Object>> workingSet = getWorkingSet(ctx);
+//        workingSet = applyWhere(workingSet, ctx.whereClause());
+//
+//        List<Map<String, Object>> result;
+//        if (ctx.groupByClause() != null) {
+//            result = applyGroupBy(workingSet, ctx.groupByClause(), ctx.projection());
+//        } else {
+//            result = applyProjection(workingSet, ctx.projection());
+//        }
+//        applyOrderBy(result, ctx.orderClause());
+//        applySkipLimit(result, ctx.skipClause(), ctx.limitClause());
+//
+//        return result;
+//    }
+
+
+    public Object visitSelectStatement(IrisSQLParser.SelectStatementContext ctx) {
+        return visitSelectCore(ctx.selectCore());
+    }
+
+    public Object visitSelectCore(IrisSQLParser.SelectCoreContext ctx) {
         List<Map<String, Object>> workingSet = getWorkingSet(ctx);
-        workingSet = applyWhere(workingSet, ctx.whereClause());
+
+        if (ctx.whereClause() != null) {
+            workingSet = applyWhere(workingSet, ctx.whereClause());
+        }
 
         List<Map<String, Object>> result;
         if (ctx.groupByClause() != null) {
@@ -29,25 +53,38 @@ public class ExprSelect {
         } else {
             result = applyProjection(workingSet, ctx.projection());
         }
-        applyOrderBy(result, ctx.orderClause());
+        if (ctx.orderClause() != null) {
+            applyOrderBy(result, ctx.orderClause());
+        }
         applySkipLimit(result, ctx.skipClause(), ctx.limitClause());
 
         return result;
     }
 
-
-
-
-    private List<Map<String, Object>> getWorkingSet(IrisSQLParser.SelectContext ctx) {
+    private List<Map<String, Object>> getWorkingSet(IrisSQLParser.SelectCoreContext ctx) {
         List<Map<String, Object>> workingSet = visitor.getTableData(ctx.tableRef());
-        for (IrisSQLParser.JoinClauseContext joinCtx : ctx.joinClause()) {
-            List<Map<String, Object>> right = visitor.getTableData(joinCtx.tableRef());
-            IrisSQLParser.ExprContext joinCondition = joinCtx.expr();
-            JoinType type = join.getJoinType(joinCtx);
-            workingSet = join.applyJoin(workingSet, right, joinCondition, type);
+
+        if (ctx.joinClause() != null) {
+            for (IrisSQLParser.JoinClauseContext joinCtx : ctx.joinClause()) {
+                List<Map<String, Object>> right = visitor.getTableData(joinCtx.tableRef());
+                IrisSQLParser.ExprContext joinCondition = joinCtx.expr();
+                JoinType type = join.getJoinType(joinCtx);
+                workingSet = join.applyJoin(workingSet, right, joinCondition, type);
+            }
         }
         return workingSet;
     }
+
+//    private List<Map<String, Object>> getWorkingSet(IrisSQLParser.SelectContext ctx) {
+//        List<Map<String, Object>> workingSet = visitor.getTableData(ctx.tableRef());
+//        for (IrisSQLParser.JoinClauseContext joinCtx : ctx.joinClause()) {
+//            List<Map<String, Object>> right = visitor.getTableData(joinCtx.tableRef());
+//            IrisSQLParser.ExprContext joinCondition = joinCtx.expr();
+//            JoinType type = join.getJoinType(joinCtx);
+//            workingSet = join.applyJoin(workingSet, right, joinCondition, type);
+//        }
+//        return workingSet;
+//    }
 
 
     private List<Map<String, Object>> applyWhere(List<Map<String, Object>> rows,

@@ -9,8 +9,9 @@ request
     | createTable
     | dropTable
     | insert
-    | select
+    | selectStatement
     | delete
+    | alter
     ;
 
 delete: DELETE FROM name whereClause? SEMICOLON;
@@ -27,16 +28,19 @@ columnModifier
 
 insert: INSERT INTO name VALUE LPAREN expr (COMMA expr)* RPAREN SEMICOLON;
 
-select
+selectStatement
+    : selectCore SEMICOLON
+    ;
+
+selectCore
     : SELECT projection
       FROM tableRef
       joinClause*
       whereClause?
+      groupByClause?
       orderClause?
       skipClause?
       limitClause?
-      groupByClause?
-      SEMICOLON
     ;
 
 skipClause : SKIP_ INTEGER_NUM;
@@ -46,11 +50,20 @@ projection: STAR | selectItem (COMMA selectItem)*;
 selectItem: expr (AS name)?;
 
 alter
- : ALTER TABLE name ADD COLUMN columnDef SEMICOLON
- | ALTER TABLE name DROP COLUMN name SEMICOLON
- | ALTER TABLE name EDIT COLUMN columnDef SEMICOLON
- ;
-tableRef: name | LPAREN select RPAREN;
+    : ALTER TABLE name ADD COLUMN columnDef SEMICOLON
+    | ALTER TABLE name DROP COLUMN name SEMICOLON
+    | ALTER TABLE name EDIT COLUMN columnDef SEMICOLON
+    | ALTER TABLE name ADD CONSTRAINT name constraintDef SEMICOLON
+    | ALTER TABLE name DROP CONSTRAINT name SEMICOLON
+    ;
+
+constraintDef
+    : PRIMARY KEY LPAREN columnList RPAREN
+    | UNIQUE LPAREN columnList RPAREN
+    ;
+
+
+tableRef: name | LPAREN selectCore RPAREN;
 joinClause: (LEFT | RIGHT | FULL)? JOIN tableRef ON expr;
 columnList: name (COMMA name)*;
 whereClause: WHERE expr;
@@ -120,7 +133,7 @@ WITH : [Ww][Ii][Tt][Hh];
 INDEXING : [Ii][Nn][Dd][Ee][Xx][Ii][Nn][Gg];
 HASH : [Hh][Aa][Ss][Hh];
 TREE : [Tt][Rr][Ee][Ee];
-
+CONSTRAINT: [Cc][Oo][Nn][Ss][Tt][Rr][Aa][Ii][Nn][Tt];
 
 
 EQ : '=';

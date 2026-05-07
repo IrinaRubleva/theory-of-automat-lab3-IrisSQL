@@ -3,6 +3,7 @@ plugins {
     id 'application'
     id 'org.springframework.boot' version '3.4.5'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'antlr'
 }
 
 repositories {
@@ -11,17 +12,31 @@ repositories {
 
 dependencies {
     implementation 'org.antlr:antlr4-runtime:4.13.2'
+    antlr 'org.antlr:antlr4:4.13.2'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-application {
-    mainClass = 'Application'
+generateGrammarSource {
+    source = file('src/main/antlr')
+    outputDirectory = file('src/main/java/parser')
+    arguments += ['-visitor', '-no-listener']
+    arguments += ['-package', 'parser']
+    arguments += ['-encoding', 'UTF-8']
 }
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
+    dependsOn generateGrammarSource
+}
+
+clean {
+    delete 'src/main/java/parser'
+}
+
+application {
+    mainClass = 'Application'
 }
 
 test {

@@ -1,6 +1,8 @@
 import model.ast.Interpreter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -99,7 +101,6 @@ public class DBTest {
 
 
 
-
     @Test
     void testPrimaryKeyViolation() {
         assertThrows(RuntimeException.class, () ->
@@ -178,6 +179,22 @@ public class DBTest {
 
 
 
+    @Test
+    void testSubqueryInFrom() {
+
+        Interpreter sql = new Interpreter();
+        exec("CREATE DATABASE subquery_test;");
+        exec("CREATE TABLE users (id INTEGER, name TEXT);");
+
+        exec("INSERT INTO users VALUE (1, \"Alice\");");
+        exec("INSERT INTO users VALUE (2, \"Bob\");");
+
+        Object result = exec("SELECT id FROM (SELECT * FROM users);");
+
+        List<Map<String, Object>> rows = (List<Map<String, Object>>) result;
+
+        assertEquals(2, rows.size());
+    }
 
 
     @Test
